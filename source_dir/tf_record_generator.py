@@ -3,12 +3,14 @@ import os
 import struct
 import time
 
+logging.basicConfig()
 logger = logging.getLogger(__name__)
+logger.setLevel()
 
 
 class TFRecordDatasetGenerator(object):
 
-    def __init__(self, channel_name, buffer_size, stream_dir='/opt/ml/input/data/'):
+    def __init__(self, channel_name, buffer_size):
         """ Generator that reads TF records from the stream.
 
         Example:
@@ -33,11 +35,11 @@ class TFRecordDatasetGenerator(object):
         Args:
             channel_name: (string) containing the channel name
             buffer_size: (int) number of records that will be cached. Higher buffer size means that more records will
-            be written in memory from the stream reduzing time spent waiting on I/O. Lower buffer size means less
+            be written in memory from the stream reducing time spent waiting on I/O. Lower buffer size means less
             memory consumption.
 
         """
-        self._stream_dir = stream_dir
+        self._stream_dir = '/opt/ml/input/data/'
         self._epoch = 0
         self._channel_name = channel_name
         self._buffer_size = buffer_size
@@ -46,12 +48,10 @@ class TFRecordDatasetGenerator(object):
     def __call__(self, *args, **kwargs):
         """ Iterator of TF serialized examples.
 
-        Everytime next() is called, it ensures that {buffer_size} records are cached in the queue.
+        Every time next() is called, it ensures that {buffer_size} records are cached in the queue.
 
-        When data is read from the stream, more data is download from S3 and written to the file.
-        For better performance, read the maximum possible without incurring memory issues in advance.
-
-        When data is read from the stream, it's removed from the file, reducing disk usage.
+        As data is read from the stream, more data is streamed in from S3.
+        For better performance, read the maximum possible in advance without crossing memory constraints.
         """
         self._wait_until_stream_exists()
 
