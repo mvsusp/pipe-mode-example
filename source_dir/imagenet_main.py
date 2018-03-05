@@ -33,8 +33,8 @@ def train_input_fn(training_dir, hyperpameters):
     """
 
     # All the 100 tf records files from the training channel will stream in a file named training_0
-    training_stream_file_name = 'training_0'
-    return _input_fn(True, training_stream_file_name, hyperpameters['batch_size'])
+    channel_name = 'training'
+    return _input_fn(True, channel_name, hyperpameters['batch_size'])
 
 
 def eval_input_fn(training_dir, hyperpameters):
@@ -45,15 +45,15 @@ def eval_input_fn(training_dir, hyperpameters):
     """
 
     # All the 100 tf records files from the validation channel will stream in a file named validation_0
-    validation_stream_file_name = 'validation_0'
-    return _input_fn(False, validation_stream_file_name, hyperpameters['batch_size'])
+    channel_name = 'validation'
+    return _input_fn(False, channel_name, hyperpameters['batch_size'])
 
 
-def _input_fn(is_training, stream_file_name, batch_size, num_epochs=1, num_parallel_calls=1, multi_gpu=False):
+def _input_fn(is_training, channel_name, batch_size, num_epochs=1, num_parallel_calls=1, multi_gpu=False):
     """Input function which provides batches for train or eval.
   Args:
     is_training: A boolean denoting whether the input is for training.
-    stream_file_name: The stream file that contain all the tf records appended together.
+    channel_name: Channel that will for training/evaluation.
     batch_size: The number of samples per batch.
     num_epochs: The number of epochs to repeat the dataset.
     num_parallel_calls: The number of records that are processed in parallel. This can be optimized per data set but
@@ -67,7 +67,7 @@ def _input_fn(is_training, stream_file_name, batch_size, num_epochs=1, num_paral
 
     # Let's create a dataset generator that knows how to parse the tf records from the stream in a serialized TF example
     buffer_size = 2 * batch_size
-    generator = TFRecordDatasetGenerator(stream_file_name, buffer_size)
+    generator = TFRecordDatasetGenerator(channel_name, buffer_size)
 
     # We can create a tf.data.Dataset from the generator.
     dataset = Dataset.from_generator(generator, tf.string)
