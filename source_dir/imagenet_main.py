@@ -19,7 +19,7 @@ _NUM_CLASSES = 1001
 _NUM_IMAGES = 42 * 1000
 
 logger = logging.getLogger('tensorflow')
-logger.setLevel(logging.INFO)
+logger.setLevel(logging.DEBUG)
 _handler = logging.StreamHandler(sys.stdout)
 _handler.setFormatter(logging.Formatter(logging.BASIC_FORMAT, None))
 logger.addHandler(_handler)

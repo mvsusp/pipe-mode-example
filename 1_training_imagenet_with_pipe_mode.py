@@ -17,9 +17,9 @@ if __name__ == '__main__':
     hyperparameters = {'batch_size': 42, 'resnet_size': 34, 'multi_gpu': False}
 
     estimator = TensorFlow(input_mode=input_mode, entry_point='imagenet_main.py', source_dir='source_dir',
-                           role='SageMakerRole', training_steps=10000, evaluation_steps=100,
-                           hyperparameters=hyperparameters, train_instance_count=1, train_instance_type='ml.c4.xlarge',
-                           sagemaker_session=sagemaker_session)
+                           role='SageMakerRole', training_steps=5, evaluation_steps=5,
+                           hyperparameters=hyperparameters, train_instance_count=1, train_instance_type='ml.p2.xlarge',
+                           sagemaker_session=sagemaker_session, checkpoint_path='/opt/ml/model')
 
     s3_bucket = 's3://{}'.format(sagemaker_session.default_bucket())
 
@@ -34,6 +34,7 @@ if __name__ == '__main__':
     # All files from validation will be appended in one single file named validation_0, with 42000 images and size of
     # 20 GB.
     data_dir = 'data/fake-imagenet'
+    # data_dir = 'data/less_data'
     inputs = {'training': join(s3_bucket, data_dir, 'training'), 'validation': join(s3_bucket, data_dir, 'validation')}
 
     estimator.fit(inputs)
