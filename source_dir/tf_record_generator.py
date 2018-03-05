@@ -5,7 +5,7 @@ import time
 
 logging.basicConfig()
 logger = logging.getLogger(__name__)
-logger.setLevel()
+logger.setLevel(logging.DEBUG)
 
 
 class TFRecordDatasetGenerator(object):
