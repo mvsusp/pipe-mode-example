@@ -6,17 +6,27 @@ from sagemaker.tensorflow import TensorFlow
 
 sagemaker_session = sagemaker.Session()
 
+import logging
+import sys
+
+logger = logging.getLogger('tensorflow')
+logger.setLevel(logging.DEBUG)
+_handler = logging.StreamHandler(sys.stdout)
+_handler.setFormatter(logging.Formatter(logging.BASIC_FORMAT, None))
+logger.addHandler(_handler)
+
 if __name__ == '__main__':
     # Setting the input mode to Pipe streams the input channels to the container instead of downloading the entire file.
     # https://docs.aws.amazon.com/sagemaker/latest/dg/your-algorithms-training-algo.html#your-algorithms-training-algo-running-container
-    input_mode = 'Pipe'
+    input_mode = 'File'
 
-    hyperparameters = {'batch_size': 420, 'resnet_size': 34, 'multi_gpu': False}
+    hyperparameters = {'batch_size': 42, 'resnet_size': 34, 'multi_gpu': False}
 
-    estimator = TensorFlow(input_mode=input_mode, entry_point='imagenet_main.py', source_dir='source_dir',
-                           role='SageMakerRole', training_steps=1000000, evaluation_steps=100,
-                           hyperparameters=hyperparameters, train_instance_count=1,
-                           train_instance_type='ml.p2.xlarge', sagemaker_session=sagemaker_session)
+    train_instance_type = 'ml.p2.xlarge'
+    estimator = TensorFlow(input_mode=input_mode, entry_point='imagenet_main.py', source_dir='source_dir_file_mode',
+                           role='SageMakerRole', training_steps=10000, evaluation_steps=100,
+                           hyperparameters=hyperparameters, train_instance_count=1, train_volume_size=100,
+                           train_instance_type=train_instance_type, sagemaker_session=sagemaker_session)
 
     s3_bucket = 's3://{}'.format(sagemaker_session.default_bucket())
 
@@ -31,6 +41,7 @@ if __name__ == '__main__':
     # All files from validation will be appended in one single file named validation_0, with 42000 images and size of
     # 20 GB.
     data_dir = 'data/fake-imagenet'
+    # data_dir = 'data/less_data'
     inputs = {'training': join(s3_bucket, data_dir, 'training'), 'validation': join(s3_bucket, data_dir, 'validation')}
 
-    estimator.fit(inputs, run_tensorboard_locally=True)
+    estimator.fit(inputs)
