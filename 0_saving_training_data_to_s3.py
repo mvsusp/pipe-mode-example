@@ -29,7 +29,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=msg)
     parser.add_argument('--S3-key', help='s3 location where the files will be written.', default='data/fake-imagenet',
                         type=str)
-    parser.add_argument('-N', help='Number of copies', default=1000)
+    parser.add_argument('-N', help='Number of copies', default=100)
     args = parser.parse_args()
 
     bucket_name = sagemaker_session.default_bucket()

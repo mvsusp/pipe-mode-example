@@ -483,15 +483,8 @@ def resnet_model_fn(features, labels, mode, model_class,
 
     features = inputs
 
-    print(features)
-    print('================================')
-    print(features.__dict__)
-    print('================================')
-
-    print('images')
     tf.summary.image('images', features, max_outputs=6)
 
-    print('model classss')
     model = model_class(resnet_size, data_format)
     logits = model(features, mode == tf.estimator.ModeKeys.TRAIN)
 

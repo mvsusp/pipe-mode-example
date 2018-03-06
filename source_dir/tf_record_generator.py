@@ -5,16 +5,15 @@ import time
 
 logging.basicConfig()
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
 
 
 class TFRecordDatasetGenerator(object):
 
-    def __init__(self, channel_name, buffer_size):
+    def __init__(self, channel_name):
         """ Generator that reads TF records from the stream.
 
         Example:
-            generator = TFRecordDatasetGenerator('training_0', 21)
+            generator = TFRecordDatasetGenerator('training_0')
             dataset = Dataset.from_generator(generator, tf.string)
             iterator = dataset.make_one_shot_iterator()
 
@@ -33,22 +32,14 @@ class TFRecordDatasetGenerator(object):
             print('TF examples contains image {} and label {}'.format(image_filename, label))
 
         Args:
-            channel_name: (string) containing the channel name
-            buffer_size: (int) number of records that will be cached. Higher buffer size means that more records will
-            be written in memory from the stream reducing time spent waiting on I/O. Lower buffer size means less
-            memory consumption.
-
+            channel_name: (string) containing the channel name.
         """
         self._stream_dir = '/opt/ml/input/data/'
         self._epoch = 0
         self._channel_name = channel_name
-        self._buffer_size = buffer_size
-        self._queue = []
 
     def __call__(self, *args, **kwargs):
         """ Iterator of TF serialized examples.
-
-        Every time next() is called, it ensures that {buffer_size} records are cached in the queue.
 
         As data is read from the stream, more data is streamed in from S3.
         For better performance, read the maximum possible in advance without crossing memory constraints.
@@ -56,8 +47,13 @@ class TFRecordDatasetGenerator(object):
         self._wait_until_stream_exists()
 
         with open(self._stream_file_path, 'r') as stream:
-            while self._refill_queue(stream):
-                yield self._queue.pop()
+            while True:
+                example = self._read_example(stream)
+
+                if example:
+                    yield example
+                else:
+                    return
 
     def _read_example(self, stream):
         """Read next tf serialized example from the stream and returns it as a string.
@@ -83,22 +79,6 @@ class TFRecordDatasetGenerator(object):
         example = stream.read(length)
         crc_data = self._read_c_int_32(stream)
         return example
-
-    def _refill_queue(self, fifo):
-        """Ensures that queue contains {buffer_size} items
-
-        Returns:
-            length of the Queue
-        """
-        for i in xrange(len(self._queue), self._buffer_size):
-            example = self._read_example(fifo)
-
-            if example:
-                self._queue.append(example)
-
-        msg = 'Generator for channel {} has queue size of {} records'
-        logger.debug(msg.format(self._channel_name, len(self._queue)))
-        return len(self._queue)
 
     @property
     def _stream_file_path(self):
