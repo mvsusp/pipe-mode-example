@@ -44,16 +44,24 @@ class TFRecordDatasetGenerator(object):
         As data is read from the stream, more data is streamed in from S3.
         For better performance, read the maximum possible in advance without crossing memory constraints.
         """
-        self._wait_until_stream_exists()
 
-        with open(self._stream_file_path, 'r') as stream:
-            while True:
-                example = self._read_example(stream)
+        counter = 1
 
-                if example:
-                    yield example
-                else:
-                    return
+        while True:
+            self._wait_until_stream_exists()
+
+            with open(self._stream_file_path, 'r') as stream:
+                while True:
+                    example = self._read_example(stream)
+
+                    if example:
+                        logger.debug("Read ->: {0}".format(counter))
+                        counter += 1
+                        yield example
+                    else:
+                        logger.info("Done reading {}".format(self._stream_file_path))
+                        self._epoch += 1
+                        break
 
     def _read_example(self, stream):
         """Read next tf serialized example from the stream and returns it as a string.

@@ -16,7 +16,7 @@ _DEFAULT_IMAGE_SIZE = 224
 _NUM_CHANNELS = 3
 _NUM_CLASSES = 1001
 
-_NUM_IMAGES = 42 * 1000
+_NUM_IMAGES = 42 * 100000
 
 logger = logging.getLogger('tensorflow')
 logger.setLevel(logging.DEBUG)
