@@ -10,9 +10,10 @@ if __name__ == '__main__':
     # https://docs.aws.amazon.com/sagemaker/latest/dg/your-algorithms-training-algo.html#your-algorithms-training-algo-running-container
     input_mode = 'Pipe'
 
-    hyperparameters = {'batch_size': 42, 'resnet_size': 34, 'multi_gpu': False}
+    hyperparameters = {'batch_size': 42, 'resnet_size': 34, 'multi_gpu': False, 'min_eval_frequency': 10}
+
     estimator = TensorFlow(input_mode=input_mode, entry_point='imagenet_main.py', source_dir='source_dir',
-                           role='SageMakerRole', training_steps=1000000000000000000, evaluation_steps=100,
+                           role='SageMakerRole', evaluation_steps=100,
                            hyperparameters=hyperparameters, train_instance_count=1,
                            train_instance_type='ml.p3.2xlarge', sagemaker_session=sagemaker_session)
 

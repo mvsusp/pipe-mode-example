@@ -48,9 +48,8 @@ class TFRecordDatasetGenerator(object):
         counter = 1
 
         while True:
-            self._wait_until_stream_exists()
-
-            with open(self._stream_file_path, 'r') as stream:
+            current_stream = self._find_current_stream()
+            with open(current_stream, 'r') as stream:
                 while True:
                     example = self._read_example(stream)
 
@@ -59,7 +58,7 @@ class TFRecordDatasetGenerator(object):
                         counter += 1
                         yield example
                     else:
-                        logger.info("Done reading {}".format(self._stream_file_path))
+                        logger.info("Done reading {}".format(current_stream))
                         self._epoch += 1
                         break
 
@@ -88,20 +87,21 @@ class TFRecordDatasetGenerator(object):
         crc_data = self._read_c_int_32(stream)
         return example
 
-    @property
-    def _stream_file_path(self):
+    def _find_current_stream(self):
         """
-
         Returns: path to the current stream.
         """
-        return os.path.join(self._stream_dir, '{}_{}'.format(self._channel_name, self._epoch))
 
-    def _wait_until_stream_exists(self):
-        """ Wait for the stream to be created
-        """
-        logger.info("Wait until stream is available: {0}".format(self._stream_file_path))
-        while not os.path.exists(self._stream_file_path):
+        while True:
+            prefix = "{}_".format(self._channel_name)
+            stream_files = sorted([f for f in os.listdir(self._stream_dir) if f.startswith(prefix)])
+
+            if stream_files:
+                return os.path.join(self._stream_dir, stream_files[0])
+
+            # Wait for the stream to be created
             time.sleep(.1)
+
 
     @staticmethod
     def _read_c_struct(stream, format):

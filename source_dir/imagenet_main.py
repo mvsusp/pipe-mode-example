@@ -24,6 +24,8 @@ _handler = logging.StreamHandler(sys.stdout)
 _handler.setFormatter(logging.Formatter(logging.BASIC_FORMAT, None))
 logger.addHandler(_handler)
 
+tf.logging.set_verbosity(logging.DEBUG)
+
 
 def train_input_fn(training_dir, hyperpameters):
     """Preprocess and load training data.
@@ -71,14 +73,12 @@ def _input_fn(is_training, channel_name, batch_size, num_epochs=1, num_parallel_
     # We can create a tf.data.Dataset from the generator.
     dataset = Dataset.from_generator(generator, tf.string)
 
-    # The buffer size to use when shuffling records. A larger value results in better randomness,
-    # but smaller values reduce startup time and use less memory. Given that the iterator is treading from the
-    # stream, a bigger buffer_size will make the iterator read more records than the necessary for training starts.
-    # We recommend, to shuffle a maximum of 2 training batch sizes.
-    shuffle_buffer = 2 * batch_size
+    # We prefetch a batch at a time, This can help smooth out the time taken to
+    # load input files as we go through shuffling and processing.
+    dataset = dataset.prefetch(batch_size)
 
     return resnet.process_record_dataset(dataset, is_training, batch_size,
-                                         shuffle_buffer, _parse_record, num_epochs, num_parallel_calls,
+                                         batch_size, _parse_record, num_epochs, num_parallel_calls,
                                          examples_per_epoch=_NUM_IMAGES, multi_gpu=multi_gpu)
 
 
@@ -142,7 +142,8 @@ def model_fn(features, labels, mode, hyperparameters):
     """Our model_fn for ResNet to be used with our Estimator."""
 
     learning_rate_fn = resnet.learning_rate_with_decay(
-        batch_size=hyperparameters['batch_size'], batch_denom=256, num_images=_NUM_IMAGES, boundary_epochs=[30, 60, 80, 90],
+        batch_size=hyperparameters['batch_size'], batch_denom=256, num_images=_NUM_IMAGES,
+        boundary_epochs=[30, 60, 80, 90],
         decay_rates=[1, 0.1, 0.01, 0.001, 1e-4])
 
     return resnet.resnet_model_fn(

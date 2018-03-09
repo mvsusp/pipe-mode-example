@@ -33,9 +33,6 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-import argparse
-import os
-
 import tensorflow as tf
 
 _BATCH_NORM_DECAY = 0.997
@@ -81,10 +78,6 @@ def process_record_dataset(dataset, is_training, batch_size, shuffle_buffer,
         # Shuffle the records. Note that we shuffle before repeating to ensure
         # that the shuffling respects epoch boundaries.
         dataset = dataset.shuffle(buffer_size=shuffle_buffer)
-
-    # If we are training over multiple epochs before evaluating, repeat the
-    # dataset for the appropriate number of epochs.
-    dataset = dataset.repeat(num_epochs)
 
     # Currently, if we are using multiple GPUs, we can't pass in uneven batches.
     # (For example, if we have 4 GPUs, the number of examples in each batch
