@@ -29,11 +29,13 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=msg)
     parser.add_argument('--S3-key', help='s3 location where the files will be written.', default='data/fake-imagenet',
                         type=str)
-    parser.add_argument('-N', help='Number of copies', default=100)
+    parser.add_argument('-N', help='Number of copies', default=30500, type=int)
     args = parser.parse_args()
 
     bucket_name = sagemaker_session.default_bucket()
 
     for i in xrange(1, args.N):
-        upload_file('training', i, bucket_name, args.S3_key, os.path.join(data_dir, 'tf-training-records'))
-        upload_file('validation', i, bucket_name, args.S3_key, os.path.join(data_dir, 'tf-validation-records'))
+        upload_file('training', i, bucket_name, args.S3_key, os.path.join(data_dir, 'training',
+                                                                          'training-00000-of-00041'))
+        upload_file('validation', i, bucket_name, args.S3_key, os.path.join(data_dir, 'validation',
+                                                                            'validation-00000-of-00041'))
