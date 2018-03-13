@@ -44,8 +44,7 @@ _BATCH_NORM_EPSILON = 1e-5
 ################################################################################
 # Functions for input processing.
 ################################################################################
-def process_record_dataset(dataset, is_training, batch_size, shuffle_buffer,
-                           parse_record_fn, num_epochs=1, num_parallel_calls=1,
+def process_record_dataset(dataset, is_training, batch_size, parse_record_fn, num_epochs=1, num_parallel_calls=1,
                            examples_per_epoch=0, multi_gpu=False):
     """Given a Dataset with raw records, parse each record into images and labels,
   and return an iterator over the records.
@@ -54,9 +53,6 @@ def process_record_dataset(dataset, is_training, batch_size, shuffle_buffer,
     dataset: A Dataset representing raw records
     is_training: A boolean denoting whether the input is for training.
     batch_size: The number of samples per batch.
-    shuffle_buffer: The buffer size to use when shuffling records. A larger
-      value results in better randomness, but smaller values reduce startup
-      time and use less memory.
     parse_record_fn: A function that takes a raw record and returns the
       corresponding (image, label) pair.
     num_epochs: The number of epochs to repeat the dataset.
@@ -79,7 +75,7 @@ def process_record_dataset(dataset, is_training, batch_size, shuffle_buffer,
     if is_training:
         # Shuffle the records. Note that we shuffle before repeating to ensure
         # that the shuffling respects epoch boundaries.
-        dataset = dataset.shuffle(buffer_size=shuffle_buffer)
+        dataset = dataset.shuffle(buffer_size=batch_size)
 
     # If we are training over multiple epochs before evaluating, repeat the
     # dataset for the appropriate number of epochs.
@@ -110,7 +106,6 @@ def process_record_dataset(dataset, is_training, batch_size, shuffle_buffer,
     dataset = dataset.prefetch(1)
 
     return dataset
-
 
 
 ################################################################################

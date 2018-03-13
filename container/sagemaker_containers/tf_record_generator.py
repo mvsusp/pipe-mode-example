@@ -13,7 +13,7 @@ logger.setLevel(logging.DEBUG)
 
 class TFRecordDatasetGenerator(object):
 
-    def __init__(self, channel_name):
+    def __init__(self, channel_name, max_epochs=1):
         """ Generator that reads TF records from the stream.
 
         Example:
@@ -41,6 +41,7 @@ class TFRecordDatasetGenerator(object):
         self._stream_dir = '/opt/ml/input/data/'
         self._epoch = 0
         self._channel_name = channel_name
+        self._max_epochs = max_epochs
 
     def __call__(self, *args, **kwargs):
         """ Iterator of TF serialized examples.
@@ -58,14 +59,15 @@ class TFRecordDatasetGenerator(object):
                     example = self._read_example(stream)
 
                     if example:
-                        print("Read ->: {0}".format(counter))
+                        if counter % 500 == 0:
+                            logger.info("Read ->: {0}".format(counter))
                         counter += 1
                         yield example
-                        if counter == 10:
-                            return
                     else:
-                        print("Done reading {}".format(current_stream))
+                        logger.info("Done reading {}".format(current_stream))
                         self._epoch += 1
+                        if self._epoch >= self._max_epochs:
+                            return
                         break
 
     def _read_example(self, stream):
@@ -107,7 +109,6 @@ class TFRecordDatasetGenerator(object):
 
             # Wait for the stream to be created
             time.sleep(.1)
-
 
     @staticmethod
     def _read_c_struct(stream, format):

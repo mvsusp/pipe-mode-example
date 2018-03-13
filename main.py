@@ -51,11 +51,13 @@ if __name__ == '__main__':
         push_image(image_name)
 
     hyperparameters = {'mode': args.input_mode,
-                       'num_parallel_calls': 5, 'resnet_size': 50, 'train_epochs': 1, 'epochs_per_eval': 1,
+                       'num_parallel_calls': 5, 'resnet_size': 50, 'train_epochs': 10, 'epochs_per_eval': 1,
                        'batch_size': 32, 'multi_gpu': False, 'inter_op_parallelism_threads': 0,
                        'intra_op_parallelism_threads': 0}
 
-    estimator = Estimator(image_name, role='SageMakerRole', train_instance_count=1, train_volume_size=60,
+    train_volume_size = 30 if args.input_mode == 'Pipe' else 200
+
+    estimator = Estimator(image_name, role='SageMakerRole', train_instance_count=1, train_volume_size=train_volume_size,
                           train_instance_type=train_instance_type, input_mode=args.input_mode,
                           local_mode=not args.normal_mode, hyperparameters=hyperparameters)
 

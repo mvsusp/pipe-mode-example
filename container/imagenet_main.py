@@ -140,19 +140,12 @@ def input_fn(is_training, data_dir, channel_name, batch_size, num_epochs=1, num_
 
         # Convert to individual records
         dataset = dataset.flat_map(tf.data.TFRecordDataset)
-
     else:
-        generator = TFRecordDatasetGenerator(channel_name)()
-
-        dataset = Dataset.from_tensor_slices(tf.zeros(shape=[num_images]))
-
-        def next_record(t):
-            return tf.cast(next(generator), dtype=tf.string)
-
-        dataset = dataset.map(next_record)
+        generator = TFRecordDatasetGenerator(channel_name)
+        dataset = Dataset.from_generator(generator, tf.string)
 
     return resnet.process_record_dataset(
-        dataset, is_training, batch_size, _SHUFFLE_BUFFER, parse_record,
+        dataset, is_training, batch_size, parse_record,
         num_epochs, num_parallel_calls, examples_per_epoch=num_images,
         multi_gpu=multi_gpu)
 
