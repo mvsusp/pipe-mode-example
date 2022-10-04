@@ -152,7 +152,7 @@ def untar_directory(tar_file_path, extract_dir_path):
                     if not is_within_directory(path, member_path):
                         raise Exception("Attempted Path Traversal in Tar File")
             
-                tar.extractall(path, members, numeric_owner) 
+                tar.extractall(path, members, numeric_owner=numeric_owner) 
                 
             
             safe_extract(t, path=extract_dir_path)
